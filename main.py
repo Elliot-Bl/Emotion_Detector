@@ -41,10 +41,6 @@ IM_HEIGHT = 192 #720//4
 # This is needed since the working directory is the object_detection folder.
 sys.path.append('..')
 
-# Import utilites
-from utils import label_map_util
-from utils import visualization_utils as vis_util
-
 # Grab path to current working directory
 CWD_PATH = os.getcwd()
 

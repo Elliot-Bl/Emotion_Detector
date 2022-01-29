@@ -42,10 +42,6 @@ IM_HEIGHT = 480//2 #720//4
 # This is needed since the working directory is the object_detection folder.
 sys.path.append('..')
 
-# Import utilites
-from utils import label_map_util
-from utils import visualization_utils as vis_util
-
 # Grab path to current working directory
 CWD_PATH = os.getcwd()
 
@@ -57,12 +53,7 @@ font = cv2.FONT_HERSHEY_SIMPLEX
 # translate model output to label
 mapper = {0:'anger', 1:'disgust', 2:'fear', 3:'happiness', 4: 'sadness', 5: 'surprise', 6: 'neutral'}
 
-# camera = PiCamera()
 camera = cv2.VideoCapture(0)
-# camera.resolution = (IM_WIDTH, IM_HEIGHT)
-# camera.framerate = 30
-rawCapture = PiRGBArray(camera, size=(IM_WIDTH, IM_HEIGHT))
-rawCapture.truncate(0)
 
 #set up GPIO
 GPIO.setmode(GPIO.BOARD)
@@ -75,15 +66,12 @@ repeats = 0
 confidence_threshold = 70 #in %
 repeat_threshold = 3 #number of times an emotion is detected before emotion state is updated
 
-#for frame1 in camera.capture_continuous(rawCapture, format="bgr", use_video_port=True):
 while camera.isOpened():
     ret, frame1 = camera.read()
     t1 = cv2.getTickCount()
 
     # Acquire frame and expand frame dimensions to have shape: [1, None, None, 3]
     # i.e. a single-column array, where each item in the column has the pixel RGB value
-    # frame = np.copy(frame1)#.array)
-    # print(frame1.shape)
     frame = cv2.resize(frame1, (IM_WIDTH, IM_HEIGHT))
     frame.setflags(write=1)
     frame_gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
@@ -102,9 +90,8 @@ while camera.isOpened():
         roi_color = frame[y:y+box_size, x:x+box_size]
 
     face_gray = cv2.resize(roi_gray, (48,48))
-    # print('frame rgb = ', type(frame_rgb), np.shape(frame_rgb))
     face_expanded = np.expand_dims(face_gray/255, axis=2).astype('float32')
-    # print('frame expanded = ', type(frame_expanded[0][0][0]), np.shape([frame_expanded]))
+
     # Load the TFLite model and allocate tensors.
     interpreter = tflite.Interpreter(model_path="emotion_quarter_size.tflite")
     interpreter.allocate_tensors()
@@ -156,11 +143,8 @@ while camera.isOpened():
     frame_rate_calc = 1 / time1
 
     # Press 'q' to quit
-    
     if cv2.waitKey(1) == ord('q'):
         break
-
-    rawCapture.truncate(0)
 
 camera.release()
 GPIO.cleanup()
